@@ -18,13 +18,13 @@
   (:p ,label)
   (:p (var value))
   (:button :onclick increment "Increment")
-  (:script (defun increment () (1+ value))))
+  (:script (defun increment () (incf value))))
 
 #+comp 
 (defcomponent counter (label &key initial)
   (:p ,label)
   (:p (var value))
-  (:button :onclick (+1 value) "Increment"))
+  (:button :onclick (incf value) "Increment"))
 
 (defmacro defcomponent (name props &body body)
   `(print ,@(loop for form in body when (getf form :p) collect it)))
