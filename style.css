@@ -1,0 +1,52 @@
+html {
+  color: white;
+  background-color: black;
+  font-family: "Marcellus", serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.content {
+  max-width: 60rem;
+  margin: auto;
+}
+
+.logo {
+  border: 0.1rem solid white;
+  width: 10rem;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.header-title {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  font-size: 24px;
+  margin-right: 5rem;
+}
+
+.header-nav {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  gap: 1rem;
+  width: 20rem;
+}
+
+a {
+  text-decoration: none;
+  color: white;
+}
+
+a.button {
+  color: black;
+  background-color: white;
+  border: 0.6rem solid white;
+  border-radius: 0.8rem;
+}
