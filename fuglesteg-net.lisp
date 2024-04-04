@@ -30,14 +30,15 @@
 (deftag header (body attrs)
   `(progn
      (:header :class "header"
-       (:a :href "/" :class "header-title"
-        (:img :class "logo" :alt "Fuglesteg logo" :src "/public/logo.svg")
-        (:h1 "Fuglesteg"))
-       (:nav :class "header-nav"
-        (:a :class "button" :href "/about" "About me")
-        (:a :class "button" :href "/blog" "Blog")
-        (:a :class "button" :href "/projects" "Projects")
-        (:a :class "button" :href "/skills" "My skills")))))
+       (:a :href "/"
+        (:img :class "logo" :alt "Fuglesteg logo" :src "/public/logo.svg"))
+        (:div
+         (:a :href "/"
+          (:h1 :class "header-title" "Fuglesteg"))
+         (:nav :class "header-nav"
+          (:a :class "button" :href "/about" "About me")
+          (:a :class "button" :href "/articles" "Articles")
+          (:a :class "button" :href "/projects" "Projects"))))))
 
 (defmacro style-sheet ()
   (uiop:read-file-string #P"./style.css"))
@@ -49,6 +50,7 @@
       (:head
        (:link :rel "preconnect" :href "https://fonts.googleapis.com")
        (:link :rel "preconnect" :href "https://fonts.gstatic.com")
+       (:raw "<link rel=\"preload\" href=\"https://fonts.googleapis.com/css2?family=Marcellus&display=swap\" as=\"style\">")
        (:link :href "https://fonts.googleapis.com/css2?family=Marcellus&display=swap" :rel "stylesheet")
        (:link :rel "icon" :href "/public/favicon.ico")
        (:title ,title)
@@ -82,11 +84,54 @@
  Cras egestas libero non ipsum dictum, vel dignissim urna lacinia. Ut  dictum eleifend nulla at rhoncus. Nunc gravida lectus nec ante tristique  placerat. Mauris ac lectus efficitur, cursus ex eget, sodales ex.  Praesent sodales ante euismod, volutpat mauris nec, venenatis est. In  vel mattis elit, sit amet auctor enim. Suspendisse ut velit in odio  faucibus convallis. Fusce neque sapien, mattis et iaculis vel, ultricies  et purus.
  Morbi mollis mauris sit amet augue pulvinar cursus. Vivamus vitae justo  porta, molestie ante non, pellentesque eros. Nullam quis placerat metus.  Suspendisse diam purus, pellentesque non nisl eu, eleifend aliquam  ipsum. Curabitur accumsan, est vitae elementum mollis, lorem felis  elementum felis, et tristique nulla ipsum vitae orci. Phasellus aliquet,  felis et venenatis pretium, lacus nulla sollicitudin massa, non rhoncus  enim lacus eget dolor. Fusce eget velit purus. Aliquam maximus congue  velit, in aliquam sapien fringilla aliquet. Vestibulum ligula lorem,  hendrerit vitae consectetur vitae, convallis ac nunc. Nulla facilisi.")))))
 
+(defvar *articles* (list
+                    (make-instance 'article 
+                                   :file-path #P"./timid.md"
+                                   :title "Timid"
+                                   :created-date "12.03.2023")))
+
+(deftag article-thumbnail (body attrs &key article)
+  `(:a :href (concatenate 'string "/articles/" (title ,article))
+    (:div :class "article-thumb"
+     (:p (created-date ,article))
+     (:h3 (title ,article))
+     (:p (or (content ,article) "")))))
+
+(defmacro articles-style-sheet ()
+  (uiop:read-file-string #P"./articles.css"))
+
+(defun articles (env)
+  `(200 (:content-type "text/html")
+        (,(base-html "Articles"
+            (:style (:raw (articles-style-sheet)))
+            (:div :class "article-thumb-container"
+             (progn (loop for article in *articles*
+                         collect (article-thumbnail :article article))))))))
+
+(defclass article ()
+  ((file-path
+    :reader file-path
+    :initarg :file-path
+    :type pathname)
+    (content
+     :accessor content
+     :type string
+     :initform "")
+    (title
+     :accessor title
+     :initarg :title
+     :type string)
+    (created-date
+     :accessor created-date
+     :initarg :created-date
+     :type string)))
+
 (defun favicon (env)
   `(301 (:location "/public/favicon.ico")))
 
 (defun dispatch (env)
-  (let ((handler (cdr (assoc (getf env :path-info) *routes* :test #'string=))))
+  (let* ((path (getf env :path-info))
+         (handler (cdr (assoc path *routes* :test #'string=))))
     (if (null handler)
         (not-found)
         (funcall handler env))))
@@ -95,7 +140,7 @@
   (lack:builder
    (:static :path "/public/"
     :root #P"./public/")
-   (lambda (env) (dispatch env))))
+   #'dispatch))
 
 (defvar *handler* nil)
 
@@ -107,4 +152,6 @@
 (defvar *routes*
   '(("/" . index)
     ("/about" . about)
-    ("/favicon.ico" . favicon)))
+    ("/favicon.ico" . favicon)
+    ("/articles" . articles)))
+

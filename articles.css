@@ -1,0 +1,14 @@
+.article-thumb {
+  width: 29rem;
+  height: 10rem;
+  border: solid white 0.1rem;
+  border-radius: 0.8rem;
+  padding: 1rem;
+}
+
+.article-thumb-container {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  flex-wrap: wrap;
+}

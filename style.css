@@ -9,6 +9,8 @@ html {
 .content {
   max-width: 60rem;
   margin: auto;
+  margin-top: 1rem;
+  border-top: solid white 0.1rem;
 }
 
 .logo {
@@ -20,15 +22,14 @@ html {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 2rem;
+  flex-wrap: wrap;
 }
 
 .header-title {
-  display: flex;
-  flex-direction: row;
-  gap: 1rem;
-  font-size: 24px;
-  margin-right: 5rem;
+  font-size: 42px;
+  text-decoration: underline white 0.1rem;
+  text-underline-offset: 1rem;
 }
 
 .header-nav {
@@ -37,6 +38,8 @@ html {
   flex-direction: row;
   gap: 1rem;
   width: 20rem;
+  align-items: left;
+  justify-content: left;
 }
 
 a {
@@ -47,6 +50,12 @@ a {
 a.button {
   color: black;
   background-color: white;
-  border: 0.6rem solid white;
+  padding: 0.5rem;
+  border: 2px solid white;
   border-radius: 0.8rem;
+}
+
+.button:hover {
+  background-color: black;
+  color: white;
 }
