@@ -1,9 +1,11 @@
 .article-thumb {
-  width: 29rem;
+  width: 27rem;
   height: 10rem;
   border: solid white 0.1rem;
   border-radius: 0.8rem;
   padding: 1rem;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 .article-thumb-container {

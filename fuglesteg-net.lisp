@@ -4,28 +4,29 @@
 (ql:quickload :clack)
 (ql:quickload :lack)
 (ql:quickload :serapeum)
+(ql:quickload :alexandria)
 
 (declaim (optimize (debug 3) (speed 0) (safety 3)))
 
 (defpackage fuglesteg.net
-  (:use :cl :spinneret :parenscript))
+  (:use :cl :spinneret :alexandria :serapeum :ps))
 
 (in-package #:fuglesteg.net)
 
 (deftag counter (label attrs &key initial)
-  (with-ps-gensyms (value increment el-id)
+  (ps:with-ps-gensyms (value increment el-id)
     (let ((el-id (string el-id)))
       `(progn 
          (:p ,label)
          (:p :id ,el-id ,(or initial 0))
          (:p)
-         (:input :type "button" :onclick (ps (,increment)) :value "Increment")
+         (:input :type "button" :onclick (ps:ps (,increment)) :value "Increment")
          (:script :type "text/javascript" 
-          (:raw (ps
+          (:raw (ps:ps
                   (let ((,value ,(or initial 0)))
                     (defun ,increment () 
                       (incf ,value)
-                      (setf (chain (chain document (get-element-by-id ,el-id)) inner-text) ,value))))))))))
+                      (setf (ps:chain (ps:chain document (get-element-by-id ,el-id)) inner-text) ,value))))))))))
 
 (deftag header (body attrs)
   `(progn
@@ -58,89 +59,77 @@
       (:body
        (header)
        (:div :class "content"
-        (:h1 ,title)
+        ,(when title `(:h1 ,title))
         ,@body)))))
 
-(defun index (env)
-  `(200 (:content-type "text/html") 
-        (,(base-html "Fuglesteg.net"
-            (:script :type "text/javascript"
-             (:raw (ps (defun test () (var message "hello") (alert message)))))
-            (:a :href "/about" "About me")
-            (counter "counter" :initial 2)
-            (counter "counter2" :initial 34)))))
 
-(defun not-found ()
-  `(404 (:content-type "text/html")
-        (,(base-html "404 - Not Found"))))
-
-(defun about (env)
-  `(200 (:content-type "text/html")
-        (,(base-html "About me"
-            (:p "Hi my name is Andreas Fuglesteg Dale. Nice to meet you!")
-            (:p " Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras semper  iaculis est, id viverra elit ultrices a. In tempor id nisl at volutpat.  Aenean quis consequat neque. Nullam interdum consectetur odio quis  condimentum. Quisque laoreet nisl semper turpis consequat hendrerit.  Cras scelerisque suscipit pharetra. Donec efficitur dolor quis venenatis  scelerisque. Sed pulvinar maximus risus, eget vehicula mi venenatis id.
+(defmacro lorem-ipsum ()
+  (quote " Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras semper  iaculis est, id viverra elit ultrices a. In tempor id nisl at volutpat.  Aenean quis consequat neque. Nullam interdum consectetur odio quis  condimentum. Quisque laoreet nisl semper turpis consequat hendrerit.  Cras scelerisque suscipit pharetra. Donec efficitur dolor quis venenatis  scelerisque. Sed pulvinar maximus risus, eget vehicula mi venenatis id.
  Phasellus turpis dui, elementum vel eleifend at, convallis ut augue.  Nullam eu odio odio. Vestibulum a erat fringilla, convallis mi at,  maximus lectus. Suspendisse luctus velit id turpis venenatis sodales.  Integer lobortis quam tortor. Pellentesque ac luctus leo, tincidunt  scelerisque urna. Cras nec tempus ex. Fusce feugiat ultricies est, id  elementum quam. Nulla facilisi. Nam efficitur, odio sed convallis  vehicula, massa eros fringilla sapien, vel pharetra neque augue rutrum  libero. Vivamus iaculis ex ut cursus scelerisque. Donec iaculis aliquam  velit, ac fermentum quam ornare ac. Vivamus sit amet ex a arcu tincidunt  dignissim sit amet non justo. Vivamus a orci risus.
  Vivamus at massa est. Mauris efficitur leo eu mauris tristique  tincidunt. Suspendisse eu luctus sapien. Aenean urna sapien, gravida sed  leo malesuada, tincidunt convallis quam. Donec sagittis magna sit amet  lorem laoreet cursus. Etiam bibendum ultricies enim sed molestie. Aenean  sit amet finibus sapien, et efficitur justo. Donec facilisis est ac  nulla semper, et tempus mauris fermentum. Nullam egestas consequat ante,  sit amet dapibus magna suscipit sed. Etiam at dui pellentesque,  facilisis urna ac, ullamcorper arcu.
  Cras egestas libero non ipsum dictum, vel dignissim urna lacinia. Ut  dictum eleifend nulla at rhoncus. Nunc gravida lectus nec ante tristique  placerat. Mauris ac lectus efficitur, cursus ex eget, sodales ex.  Praesent sodales ante euismod, volutpat mauris nec, venenatis est. In  vel mattis elit, sit amet auctor enim. Suspendisse ut velit in odio  faucibus convallis. Fusce neque sapien, mattis et iaculis vel, ultricies  et purus.
- Morbi mollis mauris sit amet augue pulvinar cursus. Vivamus vitae justo  porta, molestie ante non, pellentesque eros. Nullam quis placerat metus.  Suspendisse diam purus, pellentesque non nisl eu, eleifend aliquam  ipsum. Curabitur accumsan, est vitae elementum mollis, lorem felis  elementum felis, et tristique nulla ipsum vitae orci. Phasellus aliquet,  felis et venenatis pretium, lacus nulla sollicitudin massa, non rhoncus  enim lacus eget dolor. Fusce eget velit purus. Aliquam maximus congue  velit, in aliquam sapien fringilla aliquet. Vestibulum ligula lorem,  hendrerit vitae consectetur vitae, convallis ac nunc. Nulla facilisi.")))))
-
-(defvar *articles* (list
-                    (make-instance 'article 
-                                   :file-path #P"./timid.md"
-                                   :title "Timid"
-                                   :created-date "12.03.2023")))
-
-(deftag article-thumbnail (body attrs &key article)
-  `(:a :href (concatenate 'string "/articles/" (title ,article))
-    (:div :class "article-thumb"
-     (:p (created-date ,article))
-     (:h3 (title ,article))
-     (:p (or (content ,article) "")))))
-
-(defmacro articles-style-sheet ()
-  (uiop:read-file-string #P"./articles.css"))
-
-(defun articles (env)
-  `(200 (:content-type "text/html")
-        (,(base-html "Articles"
-            (:style (:raw (articles-style-sheet)))
-            (:div :class "article-thumb-container"
-             (progn (loop for article in *articles*
-                         collect (article-thumbnail :article article))))))))
+ Morbi mollis mauris sit amet augue pulvinar cursus. Vivamus vitae justo  porta, molestie ante non, pellentesque eros. Nullam quis placerat metus.  Suspendisse diam purus, pellentesque non nisl eu, eleifend aliquam  ipsum. Curabitur accumsan, est vitae elementum mollis, lorem felis  elementum felis, et tristique nulla ipsum vitae orci. Phasellus aliquet,  felis et venenatis pretium, lacus nulla sollicitudin massa, non rhoncus  enim lacus eget dolor. Fusce eget velit purus. Aliquam maximus congue  velit, in aliquam sapien fringilla aliquet. Vestibulum ligula lorem,  hendrerit vitae consectetur vitae, convallis ac nunc. Nulla facilisi."))
 
 (defclass article ()
   ((file-path
     :reader file-path
     :initarg :file-path
     :type pathname)
-    (content
-     :accessor content
-     :type string
-     :initform "")
-    (title
-     :accessor title
-     :initarg :title
-     :type string)
-    (created-date
-     :accessor created-date
-     :initarg :created-date
-     :type string)))
+   (content
+    :accessor content
+    :type string
+    :initarg :content
+    :initform "")
+   (title
+    :accessor title
+    :initarg :title
+    :type string)
+   (created-date
+    :accessor created-date
+    :initarg :created-date
+    :type string)))
+
+(defvar *articles* (list
+                    (make-instance 'article 
+                                   :file-path #P"./timid.md"
+                                   :title "Timid"
+                                   :content (lorem-ipsum)
+                                   :created-date "12.03.2023")
+                    (make-instance 'article
+                                   :file-path #P"./slither.md"
+                                   :title "Slither"
+                                   :content (lorem-ipsum)
+                                   :created-date "14.03.2024")))
+
+(deftag article-thumbnail (body attrs &key article)
+  `(:a :href (concatenate 'string "/articles/" (title ,article))
+    (:div :class "article-thumb"
+     (:p (created-date ,article))
+     (:h3 (title ,article))
+     (:p (with-slots (content) article
+           (concatenate 'string 
+                        (subseq content 0 (min (length content) 100))
+                        "..."))))))
+
+(defmacro articles-style-sheet ()
+  (uiop:read-file-string #P"./articles.css"))
 
 (defun favicon (env)
   `(301 (:location "/public/favicon.ico")))
 
 (defun dispatch (env)
   (let* ((path (getf env :path-info))
-         (handler (cdr (assoc path *routes* :test #'string=))))
-    (if (null handler)
+         (segments (route-segments path))
+         (handler (find-handler segments *routes*)))
+    (if (or (null handler) (not (fboundp handler)))
         (not-found)
-        (funcall handler env))))
+        (funcall handler segments))))
 
 (defvar *app*
   (lack:builder
    (:static :path "/public/"
     :root #P"./public/")
-   #'dispatch))
+   (lambda (env) (dispatch env))))
 
 (defvar *handler* nil)
 
@@ -149,9 +138,115 @@
     (clack:stop *handler*))
   (setf *handler* (clack:clackup *app*)))
 
-(defvar *routes*
-  '(("/" . index)
-    ("/about" . about)
-    ("/favicon.ico" . favicon)
-    ("/articles" . articles)))
+(defun route-segments (route)
+  (split-sequence #\/ route :remove-empty-subseqs t))
 
+(defun route-parameter-p (route-parameter)
+  (and (char= (char route-parameter 0) #\{)
+       (char= (char route-parameter (1- (length route-parameter))) #\})))
+
+(defun route-parameter->symbol (route-parameter)
+  (intern (string-upcase (subseq route-parameter 1 (1- (length route-parameter))))))
+
+(defun find-handler (route-segment-list routes)
+  (let* ((segment (car route-segment-list))
+         (found (let ((route (find-route segment routes)))
+                  (if (symbolp route)
+                      route
+                      (cdr route)))))
+    (typecase found
+      (symbol found)
+      (list (find-handler (cdr route-segment-list) found)))))
+
+(defvar *routes* '())
+
+(defun find-route (route-segment routes)
+  (if (null route-segment)
+      (assoc :root routes)
+      (let ((named-route (assoc route-segment routes :test #'string=)))
+        (or named-route 
+            (assoc :parameter routes)))))
+
+(defun make-route (route-segments handler)
+  (if (null route-segments)
+      `(:root . ,handler)
+      (destructuring-bind (segment &optional . rest) route-segments
+        `(,(if (route-parameter-p segment)
+               :parameter segment) 
+          . ,(if rest 
+                 `(,(make-route rest handler))
+                 handler)))))
+
+(defun merge-route (route-segments handler routes)
+  (destructuring-bind (&optional segment . rest-of-segments) route-segments
+    (if (null segment)
+        (replace-route (make-route route-segments handler) routes)
+        (destructuring-bind (&optional route . route-tree) (find-route segment routes)
+          (if (null route)
+              (replace-route (make-route route-segments handler) routes)
+              (replace-route `(,route ,@(merge-route rest-of-segments handler route-tree)) routes))))))
+
+(defun replace-route (route routes)
+  (if (not (listp routes))
+      routes
+      `(,@(remove (car route) routes :key #'car :test #'equal) ,route)))
+
+(defun register-route (route-segments handler)
+  (setf *routes* (merge-route route-segments handler *routes*)))
+
+(defmacro arrow-stylesheet ()
+  (uiop:read-file-string #P"./arrow.css"))
+
+(deftag arrow (body attrs &key link content)
+  `(progn (:style ,(arrow-stylesheet))
+          (:div :class "arrow-container"
+           (:a :href ,link
+            (:div :class "long-arrow-left") 
+            (:p ,content)))))
+
+(defmacro defpage (name route title &body body)
+  (let* ((segments (route-segments route))
+         (route-parameters (loop for segment in segments
+                                 for i from 0
+                                 when (route-parameter-p segment)
+                                 collect (cons i (route-parameter->symbol segment)))))
+(with-gensyms (input-route-segments)
+  (register-route segments name)
+  `(defun ,name (,input-route-segments)
+     (let ,(loop for (index . parameter) in route-parameters
+                 collect `(,parameter (nth ,index ,input-route-segments)))
+       `(200 (:content-type "text/html")
+             (,(base-html ,title
+                 ,@body))))))))
+
+(defpage article "/articles/{title}" nil
+  (arrow :link "/articles" :content "Articles")
+  (let ((article (find-if 
+                      (lambda (article) 
+                        (string=
+                         (string-upcase (title article)) 
+                         (string-upcase title))) 
+                      *articles*)))
+        (if article                        ;; TODO: override to 404 (use condition system?)
+            (progn (:h1 (title article))
+                   (:p (content article)))
+            (:h1 "404"))))
+
+(defpage index "/" "Fuglesteg.net"
+  (:a :href "/about" "About me")
+  (counter "counter" :initial 2)
+  (counter "counter2" :initial 34))
+
+(defpage articles "/articles" "Articles"
+  (:style (:raw (articles-style-sheet)))
+  (:div :class "article-thumb-container"
+   (progn (loop for article in *articles*
+                collect (article-thumbnail :article article)))))
+
+(defpage about "/about" "About me"
+  (:p "Hi my name is Andreas Fuglesteg Dale. Nice to meet you!")
+  (:p (lorem-ipsum)))
+
+(defun not-found ()
+  `(404 (:content-type "text/html")
+        (,(base-html "404 - Not Found"))))
