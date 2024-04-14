@@ -9,7 +9,7 @@
 (declaim (optimize (debug 3) (speed 0) (safety 3)))
 
 (defpackage fuglesteg.net
-  (:use :cl :spinneret :alexandria :serapeum :ps))
+  (:use :cl :spinneret :alexandria :serapeum :parenscript))
 
 (in-package #:fuglesteg.net)
 
@@ -117,13 +117,17 @@
 (defun favicon (env)
   `(301 (:location "/public/favicon.ico")))
 
+(defvar *env* '())
+
 (defun dispatch (env)
   (let* ((path (getf env :path-info))
          (segments (route-segments path))
          (handler (find-handler segments *routes*)))
     (if (or (null handler) (not (fboundp handler)))
         (not-found)
-        (funcall handler segments))))
+        (let ((*env* env))
+          (setf (getf *env* :route-segments) segments)
+          (funcall handler)))))
 
 (defvar *app*
   (lack:builder
@@ -191,8 +195,9 @@
       routes
       `(,@(remove (car route) routes :key #'car :test #'equal) ,route)))
 
-(defun register-route (route-segments handler)
-  (setf *routes* (merge-route route-segments handler *routes*)))
+(eval-when (:compile-toplevel)
+  (defun register-route (route-segments handler)
+    (setf *routes* (merge-route route-segments handler *routes*))))
 
 (defmacro arrow-stylesheet ()
   (uiop:read-file-string #P"./arrow.css"))
@@ -204,25 +209,28 @@
             (:div :class "long-arrow-left") 
             (:p ,content)))))
 
-(defmacro defpage (name route title &body body)
+(defmacro defroute (name route &body body)
   (let* ((segments (route-segments route))
          (route-parameters (loop for segment in segments
                                  for i from 0
                                  when (route-parameter-p segment)
                                  collect (cons i (route-parameter->symbol segment)))))
-(with-gensyms (input-route-segments)
-  (register-route segments name)
-  `(defun ,name (,input-route-segments)
-     (let ,(loop for (index . parameter) in route-parameters
-                 collect `(,parameter (nth ,index ,input-route-segments)))
-       `(200 (:content-type "text/html")
-             (,(base-html ,title
-                 ,@body))))))))
+    (register-route segments name)
+    `(defun ,name ()
+       (let ,(loop for (index . parameter) in route-parameters
+                   collect `(,parameter (nth ,index (getf *env* :route-segments))))
+         ,@body))))
+
+(defmacro defpage (name route title &body body)
+  `(defroute ,name ,route
+         `(200 (:content-type "text/html")
+               (,(base-html ,title
+                   ,@body)))))
 
 (defpage article "/articles/{title}" nil
   (arrow :link "/articles" :content "Articles")
   (let ((article (find-if 
-                      (lambda (article) 
+                      (lambda (article)
                         (string=
                          (string-upcase (title article)) 
                          (string-upcase title))) 
