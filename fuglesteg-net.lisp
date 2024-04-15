@@ -119,6 +119,8 @@
 
 (defvar *env* '())
 
+(defcondition not-found () ())
+
 (defun dispatch (env)
   (let* ((path (getf env :path-info))
          (segments (route-segments path))
@@ -127,7 +129,8 @@
         (not-found)
         (let ((*env* env))
           (setf (getf *env* :route-segments) segments)
-          (funcall handler)))))
+          (handler-case (funcall handler)
+            (not-found () (not-found)))))))
 
 (defvar *app*
   (lack:builder
@@ -235,10 +238,10 @@
                          (string-upcase (title article)) 
                          (string-upcase title))) 
                       *articles*)))
-        (if article                        ;; TODO: override to 404 (use condition system?)
+        (if article
             (progn (:h1 (title article))
                    (:p (content article)))
-            (:h1 "404"))))
+            (signal 'not-found))))
 
 (defpage index "/" "Fuglesteg.net"
   (:a :href "/about" "About me")
