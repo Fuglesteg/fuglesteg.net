@@ -47,7 +47,13 @@ a {
   color: white;
 }
 
+a.link {
+  text-decoration: underline;
+  font-weight: bold;
+}
+
 a.button {
+  text-decoration: none;
   color: black;
   background-color: white;
   padding: 0.5rem;
