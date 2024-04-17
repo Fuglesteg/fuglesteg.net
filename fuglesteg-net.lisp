@@ -9,6 +9,7 @@
 (ql:quickload :commondoc-markdown)
 (ql:quickload :common-html)
 (ql:quickload :file-notify)
+(asdf:load-system :cl-yaml)
 
 (declaim (optimize (debug 3) (speed 0) (safety 3)))
 
@@ -38,15 +39,34 @@
     :initform "")
    (created-date
     :accessor created-date
-    :initform "14.04.24"
+    :initform "Not specified"
     :type string)))
+
+(defmethod common-doc.format:parse-document :around ((markdown commondoc-markdown:markdown) (input string))
+  "Parse yaml frontmatter and add it to the metadata of the returned node"
+  (let ((lines (split-sequence #\Newline input)))
+    (destructuring-bind (first-line . lines) lines
+      (if (not (string= first-line "---"))
+          (call-next-method)
+          (let* ((yaml-lines (loop for line in lines
+                                   for i from 1
+                                   until (string= line "---")
+                                   collect line
+                                   finally (setf lines (subseq lines i))))
+                 (yaml-string (string-join yaml-lines #\Newline))
+                 (yaml (yaml:parse yaml-string))
+                 (input (string-join lines #\Newline))
+                 (doc (call-next-method markdown input)))
+            (setf (common-doc:metadata doc) yaml)
+            doc)))))
 
 (defmethod load-file ((article article))
   (let ((doc (common-doc.format:parse-document (make-instance 'commondoc-markdown:markdown) (uiop:read-file-string (file-path article)))))
-    (with-slots (title content first-paragraph) article
+    (with-slots (title content first-paragraph created-date) article
       (setf title  (find-title doc)
             content (common-doc.format:emit-to-string (make-instance 'common-html:html) doc)
-            first-paragraph (find-first-paragraph doc)))))
+            first-paragraph (find-first-paragraph doc)
+            created-date (common-doc:get-meta doc "date")))))
 
 (defmethod find-title ((node common-doc:content-node))
      (find-title (common-doc:children node)))
@@ -109,12 +129,11 @@
 
 (defvar *articles-list* (make-instance 'article-list :directory #P"./"))
 
-#|
-(notify:watch #P"./fuglesteg.net.md")
+(comment
+  (notify:watch #P"./fuglesteg.net.md")
 
-(notify:with-events (file change :timeout t)
-  (populate-article-list *articles-list*))
-|#
+  (notify:with-events (file change :timeout t)
+    (populate-article-list *articles-list*)))
 
 ;;; Routing
 
@@ -263,7 +282,6 @@
         ,(when title `(:h1 ,title))
         ,@body)))))
 
-
 (defmacro lorem-ipsum ()
   (quote " Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras semper  iaculis est, id viverra elit ultrices a. In tempor id nisl at volutpat.  Aenean quis consequat neque. Nullam interdum consectetur odio quis  condimentum. Quisque laoreet nisl semper turpis consequat hendrerit.  Cras scelerisque suscipit pharetra. Donec efficitur dolor quis venenatis  scelerisque. Sed pulvinar maximus risus, eget vehicula mi venenatis id.
  Phasellus turpis dui, elementum vel eleifend at, convallis ut augue.  Nullam eu odio odio. Vestibulum a erat fringilla, convallis mi at,  maximus lectus. Suspendisse luctus velit id turpis venenatis sodales.  Integer lobortis quam tortor. Pellentesque ac luctus leo, tincidunt  scelerisque urna. Cras nec tempus ex. Fusce feugiat ultricies est, id  elementum quam. Nulla facilisi. Nam efficitur, odio sed convallis  vehicula, massa eros fringilla sapien, vel pharetra neque augue rutrum  libero. Vivamus iaculis ex ut cursus scelerisque. Donec iaculis aliquam  velit, ac fermentum quam ornare ac. Vivamus sit amet ex a arcu tincidunt  dignissim sit amet non justo. Vivamus a orci risus.
@@ -281,6 +299,9 @@
                         (subseq first-paragraph 0 (min (length first-paragraph) 100))
                         "..."))))))
 
+(defmacro articles-style-sheet ()
+  (uiop:read-file-string #P"./articles.css"))
+
 (deftag articles-list (body attrs)
   `(progn (:style (:raw ,(articles-style-sheet)))
           (:div :class "article-thumb-container"
@@ -292,9 +313,6 @@
      `(200 (:content-type "text/html")
            (,(base-html ,title
                ,@body)))))
-
-(defmacro articles-style-sheet ()
-  (uiop:read-file-string #P"./articles.css"))
 
 (defpage article "/articles/{title}" nil
   (arrow :link "/articles" :content "Articles")
