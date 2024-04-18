@@ -52,6 +52,11 @@ a.link {
   font-weight: bold;
 }
 
+a.link:hover {
+  color: black;
+  background-color: white;
+}
+
 a.button {
   text-decoration: none;
   color: black;
