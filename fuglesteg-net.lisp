@@ -127,13 +127,17 @@
 (defmethod initialize-instance :after ((article-list article-list) &key)
   (populate-article-list article-list))
 
-(defvar *articles-list* (make-instance 'article-list :directory #P"./"))
+(defvar *articles-list* (make-instance 'article-list :directory #P"./articles"))
 
 (comment
-  (notify:watch #P"./fuglesteg.net.md")
+  (notify:watch #P"./articles")
 
   (notify:with-events (file change :timeout t)
     (populate-article-list *articles-list*)))
+
+(sb-thread:make-thread (lambda ()
+                         (notify:with-events (file change :timeout t)
+                           (populate-article-list *articles-list*))))
 
 ;;; Routing
 
@@ -302,34 +306,20 @@
 (defmacro articles-style-sheet ()
   (uiop:read-file-string #P"./articles.css"))
 
-(deftag articles-list (body attrs)
-  `(progn (:style (:raw ,(articles-style-sheet)))
-          (:div :class "article-thumb-container"
-           `(progn ,(loop for article in (article-list-articles *articles-list*)
-                          collect (article-thumbnail :article article))))))
-
 (defmacro defpage (name route title &body body)
   `(defroute ,name ,route
      `(200 (:content-type "text/html")
            (,(base-html ,title
                ,@body)))))
 
-(defpage article "/articles/{title}" nil
-  (arrow :link "/articles" :content "Articles")
-  (let ((article (find-if 
-                      (lambda (article)
-                        (string=
-                         (string-upcase (title article))
-                         (string-upcase title))) 
-                      (article-list-articles *articles-list*))))
-        (if article
-            (progn
-              (:script (:raw (ps:ps* `(setf (ps:@ document title) ,title))))
-              (:raw (content article)))
-            (signal 'not-found))))
+(deftag articles-list (body attrs)
+  `(progn (:style (:raw ,(articles-style-sheet)))
+          (:div :class "article-thumb-container"
+           `(progn ,(loop for article in (article-list-articles *articles-list*)
+                          collect (article-thumbnail :article article))))))
 
 (deftag contact (body attrs)
-  `(progn 
+  `(progn
      (:h2 "Find me on:")
      (:a :href "https://linkedin.com/in/andreas-fuglesteg-dale" (:img :style "width: 4rem" :src "/public/linkedin.svg"))
      (:a :href "https://github.com/Fuglesteg" (:img :style "width: 4rem" :src "/public/github.svg"))))
@@ -349,6 +339,21 @@
 (defpage articles "/articles" "Articles"
   (articles-list))
 
+(defpage article "/articles/{title}" nil
+  (arrow :link "/articles" :content "Articles")
+  (let ((article (find-if 
+                      (lambda (article)
+                        (string=
+                         (string-upcase (title article))
+                         (string-upcase title))) 
+                      (article-list-articles *articles-list*))))
+        (if article
+            (progn
+              (:script (:raw (ps:ps* `(setf (ps:@ document title) ,title))))
+              (:raw (content article)))
+            (signal 'not-found))))
+
+; TODO
 (defpage about "/about" "About me"
   (:p "Hi my name is Andreas Fuglesteg Dale. Nice to meet you!")
   (:p (lorem-ipsum)))
