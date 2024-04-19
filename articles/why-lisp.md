@@ -76,6 +76,9 @@ languages the users have to wait for the maintainers to make new specifications
 or make changes to the compiler. In Common Lisp the users have the power to
 experiment with and make any changes they want to the language.
 
+It is said that lisp eats it's own children. This refers
+to the fact that when any new lisp or lisp inspired language introduces new features. The lispers in other communities will usually take whichever ideas they like and implement them into whatever lisp they use. This is the case for the threading and magic wand macros for clojure
+
 
 - Possibly mention JDH compiler extension and macro hell.
 - Shirakumo and Trial
