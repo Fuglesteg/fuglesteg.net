@@ -46,17 +46,21 @@ header {
   justify-content: left;
 }
 
+code {
+  font-size: large;
+}
+
 a {
   color: white;
   text-decoration: none;
 }
 
-.content a {
+.content p > a {
   text-decoration: underline;
   font-weight: bold;
 }
 
-.content a:hover {
+.content p > a:hover {
   color: black;
   background-color: white;
 }
@@ -73,4 +77,8 @@ a.button {
 .button:hover {
   background-color: black;
   color: white;
+}
+
+html {
+  padding-bottom: 40vh;
 }
