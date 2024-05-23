@@ -21,6 +21,9 @@
 
 ;;; Articles
 
+;; TODO: Write document superclass??
+;; use it to implement /projects
+
 (defclass article ()
   ((file-path
     :reader file-path
@@ -31,8 +34,7 @@
     :type string
     :initform "")
    (title
-    :accessor title
-    :type string)
+    :accessor title)
    (first-paragraph
     :reader first-paragraph
     :type string
@@ -63,7 +65,7 @@
 (defmethod load-file ((article article))
   (let ((doc (common-doc.format:parse-document (make-instance 'commondoc-markdown:markdown) (uiop:read-file-string (file-path article)))))
     (with-slots (title content first-paragraph created-date) article
-      (setf title  (find-title doc)
+      (setf title (find-title doc)
             content (common-doc.format:emit-to-string (make-instance 'common-html:html) doc)
             first-paragraph (find-first-paragraph doc)
             created-date (common-doc:get-meta doc "date")))))
@@ -184,10 +186,12 @@
   (destructuring-bind (&optional segment . rest-of-segments) route-segments
     (if (null segment)
         (replace-route (make-route route-segments handler) routes)
-        (destructuring-bind (&optional route . route-tree) (find-route segment routes)
-          (if (null route)
-              (replace-route (make-route route-segments handler) routes)
-              (replace-route `(,route ,@(merge-route rest-of-segments handler route-tree)) routes))))))
+        (if (symbolp routes)
+            `((:root . ,routes) ,(make-route route-segments handler))
+            (destructuring-bind (&optional route . route-tree) (find-route segment routes)
+              (if (null route)
+                  (replace-route (make-route route-segments handler) routes)
+                  (replace-route `(,route ,@(merge-route rest-of-segments handler route-tree)) routes)))))))
 
 (defun replace-route (route routes)
   (if (not (listp routes))
@@ -341,6 +345,11 @@
 
 (defpage article "/articles/{title}" nil
   (arrow :link "/articles" :content "Articles")
+  (:link :rel "stylesheet" :href "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tomorrow-night-bright.min.css")
+  (:script :src "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js")
+  (:script :src "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/go.min.js")
+  (:script :src "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/lisp.min.js")
+  (:script (:raw (ps (chain hljs (highlight-all)))))
   (let ((article (find-if 
                       (lambda (article)
                         (string=
@@ -350,13 +359,18 @@
         (if article
             (progn
               (:script (:raw (ps:ps* `(setf (ps:@ document title) ,title))))
+              (:p (created-date article))
               (:raw (content article)))
             (signal 'not-found))))
 
 ; TODO
+(defvar *about-article* (make-instance 'article :file-path #P"./about-me.md"))
+  
 (defpage about "/about" "About me"
-  (:p "Hi my name is Andreas Fuglesteg Dale. Nice to meet you!")
-  (:p (lorem-ipsum)))
+  (:raw (content *about-article*)))
+
+(defpage projects "/projects" "Projects"
+  (:p "hello"))
 
 (defun not-found ()
   `(404 (:content-type "text/html")
