@@ -19,30 +19,7 @@
 
 (in-package #:fuglesteg.net)
 
-;;; Articles
-
-;; TODO: Write document superclass??
-;; use it to implement /projects
-
-(defclass article ()
-  ((file-path
-    :reader file-path
-    :initarg :file-path
-    :type pathname)
-   (content
-    :accessor content
-    :type string
-    :initform "")
-   (title
-    :accessor title)
-   (first-paragraph
-    :reader first-paragraph
-    :type string
-    :initform "")
-   (created-date
-    :accessor created-date
-    :initform "Not specified"
-    :type string)))
+;;; Documents (Articles & Projects)
 
 (defmethod common-doc.format:parse-document :around ((markdown commondoc-markdown:markdown) (input string))
   "Parse yaml frontmatter and add it to the metadata of the returned node"
@@ -62,16 +39,90 @@
             (setf (common-doc:metadata doc) yaml)
             doc)))))
 
-(defmethod load-file ((article article))
-  (let ((doc (common-doc.format:parse-document (make-instance 'commondoc-markdown:markdown) (uiop:read-file-string (file-path article)))))
-    (with-slots (title content first-paragraph created-date) article
-      (setf title (find-title doc)
-            content (common-doc.format:emit-to-string (make-instance 'common-html:html) doc)
-            first-paragraph (find-first-paragraph doc)
-            created-date (common-doc:get-meta doc "date")))))
+(defclass document ()
+  ((file-path
+    :reader file-path
+    :initarg :file-path
+    :type pathname)
+   (content
+    :accessor content
+    :type string
+    :initform "")))
+
+(defmethod load-file ((document document))
+  (let ((common-doc (common-doc.format:parse-document 
+                     (make-instance 'commondoc-markdown:markdown)
+                     (uiop:read-file-string (file-path document)))))
+    (setf (content document) (common-doc.format:emit-to-string (make-instance 'common-html:html) common-doc))
+    (populate-data document common-doc)))
+
+(defmethod populate-data ((document document) (common-doc common-doc:content-node)))
+
+(defclass thumbnail ()
+  ((synopsis
+   :accessor synopsis
+   :type string
+   :initform "")))
+
+(defmethod populate-data :before ((thumbnail thumbnail) (common-doc common-doc:content-node))
+  (setf (synopsis thumbnail) (find-first-paragraph common-doc)))
+
+(defclass article (document thumbnail)
+  ((title
+    :accessor title)
+   (created-date
+    :accessor created-date
+    :initform "Not specified"
+    :type string)))
+
+(defmethod populate-data ((article article) (common-doc common-doc:content-node))
+  (with-slots (title first-paragraph created-date) article
+    (setf title (find-title common-doc)
+          created-date (or (common-doc:get-meta common-doc "date") created-date))))
+
+(defclass project (document thumbnail)
+  ((name
+    :accessor name)
+   (link
+    :accessor link)
+   (source-link
+    :accessor source-link)
+   (technologies
+    :accessor technologies)))
+
+(defmethod populate-data ((project project) (common-doc common-doc:content-node))
+  (with-slots (name link source-link technologies) project
+    (setf name (common-doc:get-meta common-doc "name")
+          link (common-doc:get-meta common-doc "link")
+          source-link (common-doc:get-meta common-doc "source-link")
+          technologies (common-doc:get-meta common-doc "technologies"))))
+
+(defclass document-list ()
+  ((directory
+    :initarg :directory
+    :type pathname)
+   (type
+    :initarg :type
+    :initform 'document
+    :type symbol)
+   (documents
+    :reader document-list-documents
+    :type list)))
+
+(defmethod populate-document-list ((document-list document-list))
+  (with-slots (directory documents type) document-list
+    (let ((files (uiop/filesystem:directory-files directory "*.md")))
+      (setf documents (loop for file in files
+                            collect (make-instance type :file-path file))))))
+
+(defmethod initialize-instance :after ((document-list document-list) &key)
+  (populate-document-list document-list))
+
+(defmethod initialize-instance :after ((document document) &key)
+  (load-file document))
 
 (defmethod find-title ((node common-doc:content-node))
-     (find-title (common-doc:children node)))
+  (find-title (common-doc:children node)))
 
 (defmethod find-title ((node common-doc:section))
   (find-title (common-doc:title node)))
@@ -109,37 +160,17 @@
 (defmethod find-first-paragraph ((node t))
   nil)
 
-(defmethod initialize-instance :after ((article article) &key)
-  (load-file article))
-
-(defclass article-list ()
-  ((directory
-    :initarg :directory
-    :type pathname)
-   (articles
-    :reader article-list-articles
-    :type list)))
-
-(defmethod populate-article-list ((article-list article-list))
-  (with-slots (directory articles) article-list
-    (let ((files (uiop/filesystem:directory-files directory "*.md")))
-      (setf articles (loop for file in files
-            collect (make-instance 'article :file-path file))))))
-
-(defmethod initialize-instance :after ((article-list article-list) &key)
-  (populate-article-list article-list))
-
-(defvar *articles-list* (make-instance 'article-list :directory #P"./articles"))
+(defvar *articles-list* (make-instance 'document-list :type 'article :directory #P"./articles"))
 
 (comment
   (notify:watch #P"./articles")
 
   (notify:with-events (file change :timeout t)
-    (populate-article-list *articles-list*)))
+    (populate-document-list *articles-list*)))
 
 (sb-thread:make-thread (lambda ()
                          (notify:with-events (file change :timeout t)
-                           (populate-article-list *articles-list*))))
+                           (populate-document-list *articles-list*))))
 
 ;;; Routing
 
@@ -302,9 +333,9 @@
     (:div :class "article-thumb"
      (:p (created-date ,article))
      (:h3 (title ,article))
-     (:p (with-slots (first-paragraph) article
+     (:p (with-slots (synopsis) article
            (concatenate 'string 
-                        (subseq first-paragraph 0 (min (length first-paragraph) 100))
+                        (subseq synopsis 0 (min (length synopsis) 100))
                         "..."))))))
 
 (defmacro articles-style-sheet ()
@@ -319,14 +350,14 @@
 (deftag articles-list (body attrs)
   `(progn (:style (:raw ,(articles-style-sheet)))
           (:div :class "article-thumb-container"
-           `(progn ,(loop for article in (article-list-articles *articles-list*)
+           `(progn ,(loop for article in (document-list-documents *articles-list*)
                           collect (article-thumbnail :article article))))))
 
 (deftag contact (body attrs)
   `(progn
      (:h2 "Find me on:")
-     (:a :href "https://linkedin.com/in/andreas-fuglesteg-dale" (:img :style "width: 4rem" :src "/public/linkedin.svg"))
-     (:a :href "https://github.com/Fuglesteg" (:img :style "width: 4rem" :src "/public/github.svg"))))
+     (:a :href "https://linkedin.com/in/andreas-fuglesteg-dale" (:img :style "width: 4rem" :src "/public/icons/linkedin.svg"))
+     (:a :href "https://github.com/Fuglesteg" (:img :style "width: 4rem" :src "/public/icons/github.svg"))))
 
 (defpage index "/" "Fuglesteg.net"
   (:p "Hello! Welcome to my corner of the internet." 
@@ -355,7 +386,7 @@
                         (string=
                          (string-upcase (title article))
                          (string-upcase title))) 
-                      (article-list-articles *articles-list*))))
+                      (document-list-documents *articles-list*))))
         (if article
             (progn
               (:script (:raw (ps:ps* `(setf (ps:@ document title) ,title))))
@@ -363,14 +394,34 @@
               (:raw (content article)))
             (signal 'not-found))))
 
-; TODO
-(defvar *about-article* (make-instance 'article :file-path #P"./about-me.md"))
-  
+(defvar *about-document* (make-instance 'document :file-path #P"./about-me.md"))
+
 (defpage about "/about" "About me"
-  (:raw (content *about-article*)))
+  (:raw (content *about-document*)))
+
+(deftag devicon (body attrs &key name)
+  `(:img 
+    :style "width: 10%;"
+    :src (format nil "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/~a/~:*~a-original.svg" ,name)))
+
+(deftag project-thumbnail (body attrs &key project)
+  `(:a :href (source-link ,project)
+    (:div :class "article-thumb"
+     (:h2 (name ,project))
+     (:p (synopsis ,project))
+     (:div (loop for technology in (technologies ,project)
+           collect (devicon :name technology))))))
+
+(defvar *projects-list* (make-instance 'document-list :type 'project :directory #P"./projects"))
+
+(deftag project-list (body attrs)
+  `(progn (:style (:raw ,(articles-style-sheet)))
+         (:div :class "article-thumb-container"
+          `(progn ,@(loop for project in (document-list-documents *projects-list*)
+                         collect (project-thumbnail :project project))))))
 
 (defpage projects "/projects" "Projects"
-  (:p "hello"))
+  (project-list))
 
 (defun not-found ()
   `(404 (:content-type "text/html")
