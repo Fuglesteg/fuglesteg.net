@@ -399,13 +399,19 @@
 (defpage about "/about" "About me"
   (:raw (content *about-document*)))
 
+(defvar *devicon-overrides*
+  '("lisp" "guix"))
+
 (deftag devicon (body attrs &key name)
-  `(:img 
-    :style "width: 10%;"
-    :src (format nil "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/~a/~:*~a-original.svg" ,name)))
+  `(let ((src (if (member ,name *devicon-overrides* :test #'string=)
+                 (format nil "/public/icons/~a.svg" ,name)
+                 (format nil "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/~a/~:*~a-original.svg" ,name))))
+    (:img 
+      :style "width: 10%;"
+      :src src)))
 
 (deftag project-thumbnail (body attrs &key project)
-  `(:a :href (source-link ,project)
+  `(:a :href (format nil "/projects/~a" (name ,project))
     (:div :class "article-thumb"
      (:h2 (name ,project))
      (:p (synopsis ,project))
@@ -422,6 +428,20 @@
 
 (defpage projects "/projects" "Projects"
   (project-list))
+
+(defpage project "/projects/{name}" nil
+  (arrow :link "/projects" :content "Projects")
+  (let ((project (find-if 
+                  (lambda (project)
+                    (string=
+                     (string-upcase (name project))
+                     (string-upcase name))) 
+                  (document-list-documents *projects-list*))))
+    (if project
+        (progn
+          (:script (:raw (ps:ps* `(setf (ps:@ document title) ,name))))
+          (:raw (content project)))
+        (signal 'not-found))))
 
 (defun not-found ()
   `(404 (:content-type "text/html")
