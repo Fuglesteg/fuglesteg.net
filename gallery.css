@@ -1,0 +1,28 @@
+.gallery-container {
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100vw;
+  mask: linear-gradient(90deg, transparent, white 20%, white 80%, transparent);
+  position: absolute;
+  overflow-y: scroll;
+  display: flex;
+  gap: 2rem;
+  scroll-behavior: smooth;
+  overflow: hidden;
+  z-index: -1;
+}
+
+.gallery-container {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+}
+.gallery-container::-webkit-scrollbar { /* WebKit */
+    width: 0;
+    height: 0;
+}
+
+.gallery-item {
+  width: 59rem;
+  border-radius: 1%;
+}
+

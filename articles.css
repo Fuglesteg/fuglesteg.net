@@ -1,4 +1,4 @@
-.article-thumb {
+.thumbnail {
   width: 27rem;
   height: 10rem;
   border: solid white 0.1rem;
@@ -8,9 +8,10 @@
   overflow: hidden;
 }
 
-.article-thumb-container {
+.grid-container {
   display: flex;
   flex-direction: row;
   gap: 1rem;
   flex-wrap: wrap;
 }
+

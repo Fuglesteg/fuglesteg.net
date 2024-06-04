@@ -60,9 +60,9 @@
 
 (defclass thumbnail ()
   ((synopsis
-   :accessor synopsis
-   :type string
-   :initform "")))
+    :accessor synopsis
+    :type string
+    :initform "")))
 
 (defmethod populate-data :before ((thumbnail thumbnail) (common-doc common-doc:content-node))
   (setf (synopsis thumbnail) (find-first-paragraph common-doc)))
@@ -88,14 +88,24 @@
    (source-link
     :accessor source-link)
    (technologies
-    :accessor technologies)))
+    :accessor technologies)
+   (images
+    :accessor images)))
 
 (defmethod populate-data ((project project) (common-doc common-doc:content-node))
-  (with-slots (name link source-link technologies) project
+  (with-slots (name link source-link technologies images) project
     (setf name (common-doc:get-meta common-doc "name")
           link (common-doc:get-meta common-doc "link")
           source-link (common-doc:get-meta common-doc "source-link")
-          technologies (common-doc:get-meta common-doc "technologies"))))
+          technologies (common-doc:get-meta common-doc "technologies")
+          images (find-images project))))
+
+(defmethod find-images ((project project))
+  (let* ((image-directory-absolute-uri (format nil "/public/projects/~a" (pathname-name (file-path project))))
+         (image-directory (pathname (format nil ".~a" image-directory-absolute-uri))))
+    (mapcar (lambda (path)
+              (format nil "~a/~a.~a" image-directory-absolute-uri (pathname-name path) (pathname-type path)))
+            (uiop/filesystem:directory-files image-directory))))
 
 (defclass document-list ()
   ((directory
@@ -277,15 +287,17 @@
 
 ;;; Markup
 
+;; Close tags
+(setf *html-style* :tree)
+
 (defmacro arrow-stylesheet ()
   (uiop:read-file-string #P"./arrow.css"))
 
 (deftag arrow (body attrs &key link content)
   `(progn (:style ,(arrow-stylesheet))
-          (:div :class "arrow-container"
-           (:a :href ,link
-            (:div :class "long-arrow-left") 
-            (:p ,content)))))
+          (:a :class "arrow-container" :href ,link
+           (:div :class "long-arrow-left") 
+           (:p ,content))))
 
 (deftag header (body attrs)
   `(progn
@@ -321,16 +333,18 @@
         ,(when title `(:h1 ,title))
         ,@body)))))
 
-(defmacro lorem-ipsum ()
-  (quote " Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras semper  iaculis est, id viverra elit ultrices a. In tempor id nisl at volutpat.  Aenean quis consequat neque. Nullam interdum consectetur odio quis  condimentum. Quisque laoreet nisl semper turpis consequat hendrerit.  Cras scelerisque suscipit pharetra. Donec efficitur dolor quis venenatis  scelerisque. Sed pulvinar maximus risus, eget vehicula mi venenatis id.
- Phasellus turpis dui, elementum vel eleifend at, convallis ut augue.  Nullam eu odio odio. Vestibulum a erat fringilla, convallis mi at,  maximus lectus. Suspendisse luctus velit id turpis venenatis sodales.  Integer lobortis quam tortor. Pellentesque ac luctus leo, tincidunt  scelerisque urna. Cras nec tempus ex. Fusce feugiat ultricies est, id  elementum quam. Nulla facilisi. Nam efficitur, odio sed convallis  vehicula, massa eros fringilla sapien, vel pharetra neque augue rutrum  libero. Vivamus iaculis ex ut cursus scelerisque. Donec iaculis aliquam  velit, ac fermentum quam ornare ac. Vivamus sit amet ex a arcu tincidunt  dignissim sit amet non justo. Vivamus a orci risus.
- Vivamus at massa est. Mauris efficitur leo eu mauris tristique  tincidunt. Suspendisse eu luctus sapien. Aenean urna sapien, gravida sed  leo malesuada, tincidunt convallis quam. Donec sagittis magna sit amet  lorem laoreet cursus. Etiam bibendum ultricies enim sed molestie. Aenean  sit amet finibus sapien, et efficitur justo. Donec facilisis est ac  nulla semper, et tempus mauris fermentum. Nullam egestas consequat ante,  sit amet dapibus magna suscipit sed. Etiam at dui pellentesque,  facilisis urna ac, ullamcorper arcu.
- Cras egestas libero non ipsum dictum, vel dignissim urna lacinia. Ut  dictum eleifend nulla at rhoncus. Nunc gravida lectus nec ante tristique  placerat. Mauris ac lectus efficitur, cursus ex eget, sodales ex.  Praesent sodales ante euismod, volutpat mauris nec, venenatis est. In  vel mattis elit, sit amet auctor enim. Suspendisse ut velit in odio  faucibus convallis. Fusce neque sapien, mattis et iaculis vel, ultricies  et purus.
- Morbi mollis mauris sit amet augue pulvinar cursus. Vivamus vitae justo  porta, molestie ante non, pellentesque eros. Nullam quis placerat metus.  Suspendisse diam purus, pellentesque non nisl eu, eleifend aliquam  ipsum. Curabitur accumsan, est vitae elementum mollis, lorem felis  elementum felis, et tristique nulla ipsum vitae orci. Phasellus aliquet,  felis et venenatis pretium, lacus nulla sollicitudin massa, non rhoncus  enim lacus eget dolor. Fusce eget velit purus. Aliquam maximus congue  velit, in aliquam sapien fringilla aliquet. Vestibulum ligula lorem,  hendrerit vitae consectetur vitae, convallis ac nunc. Nulla facilisi."))
+(defmacro defpage (name route title &body body)
+  `(defroute ,name ,route
+     `(200 (:content-type "text/html")
+           (,(base-html ,title
+               ,@body)))))
+
+(defmacro articles-style-sheet ()
+  (uiop:read-file-string #P"./articles.css"))
 
 (deftag article-thumbnail (body attrs &key article)
   `(:a :href (concatenate 'string "/articles/" (title ,article))
-    (:div :class "article-thumb"
+    (:div :class "thumbnail"
      (:p (created-date ,article))
      (:h3 (title ,article))
      (:p (with-slots (synopsis) article
@@ -338,20 +352,11 @@
                         (subseq synopsis 0 (min (length synopsis) 100))
                         "..."))))))
 
-(defmacro articles-style-sheet ()
-  (uiop:read-file-string #P"./articles.css"))
-
-(defmacro defpage (name route title &body body)
-  `(defroute ,name ,route
-     `(200 (:content-type "text/html")
-           (,(base-html ,title
-               ,@body)))))
-
 (deftag articles-list (body attrs)
   `(progn (:style (:raw ,(articles-style-sheet)))
-          (:div :class "article-thumb-container"
-           `(progn ,(loop for article in (document-list-documents *articles-list*)
-                          collect (article-thumbnail :article article))))))
+          (:div :class "grid-container"
+           (loop for article in (document-list-documents *articles-list*)
+                 collect (article-thumbnail :article article)))))
 
 (deftag contact (body attrs)
   `(progn
@@ -365,7 +370,6 @@
    "Here I write about my coding projects and other things that I find interesting."
    (:br)
    (:a :class "link" :href "/articles/fuglesteg.net" "Read about how this page was made"))
-  (:br)
   (contact)
   (:hr)
   (:h2 "Recent articles")
@@ -382,17 +386,17 @@
   (:script :src "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/lisp.min.js")
   (:script (:raw (ps (chain hljs (highlight-all)))))
   (let ((article (find-if 
-                      (lambda (article)
-                        (string=
-                         (string-upcase (title article))
-                         (string-upcase title))) 
-                      (document-list-documents *articles-list*))))
-        (if article
-            (progn
-              (:script (:raw (ps:ps* `(setf (ps:@ document title) ,title))))
-              (:p (created-date article))
-              (:raw (content article)))
-            (signal 'not-found))))
+                  (lambda (article)
+                    (string=
+                     (string-upcase (title article))
+                     (string-upcase title))) 
+                  (document-list-documents *articles-list*))))
+    (if article
+        (progn
+          (:script (:raw (ps:ps* `(setf (ps:@ document title) ,title))))
+          (:p (created-date article))
+          (:raw (content article)))
+        (signal 'not-found))))
 
 (defvar *about-document* (make-instance 'document :file-path #P"./about-me.md"))
 
@@ -400,47 +404,85 @@
   (:raw (content *about-document*)))
 
 (defvar *devicon-overrides*
-  '("lisp" "guix"))
+  '("lisp" "guix" "github"))
 
 (deftag devicon (body attrs &key name)
   `(let ((src (if (member ,name *devicon-overrides* :test #'string=)
-                 (format nil "/public/icons/~a.svg" ,name)
-                 (format nil "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/~a/~:*~a-original.svg" ,name))))
-    (:img 
+                  (format nil "/public/icons/~a.svg" ,name)
+                  (format nil "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/~a/~:*~a-original.svg" ,name))))
+     (:img 
       :style "width: 10%;"
       :src src)))
 
 (deftag project-thumbnail (body attrs &key project)
   `(:a :href (format nil "/projects/~a" (name ,project))
-    (:div :class "article-thumb"
+    (:div :class "thumbnail"
      (:h2 (name ,project))
      (:p (synopsis ,project))
      (:div (loop for technology in (technologies ,project)
-           collect (devicon :name technology))))))
+                 collect (devicon :name technology))))))
 
 (defvar *projects-list* (make-instance 'document-list :type 'project :directory #P"./projects"))
 
 (deftag project-list (body attrs)
   `(progn (:style (:raw ,(articles-style-sheet)))
-         (:div :class "article-thumb-container"
-          `(progn ,@(loop for project in (document-list-documents *projects-list*)
-                         collect (project-thumbnail :project project))))))
+          (:div :class "grid-container"
+           (loop for project in (document-list-documents *projects-list*)
+                           collect (project-thumbnail :project project)))))
 
 (defpage projects "/projects" "Projects"
   (project-list))
 
+(defmacro repeating-gallery-style-sheet ()
+  (uiop:read-file-string #P"./gallery.css"))
+
+(deftag repeating-gallery (body attrs &key images)
+  (ps:with-ps-gensyms (gallery-container)
+    `(progn
+       (:style (:raw ,(repeating-gallery-style-sheet)))
+       (:script :type "module"
+        (:raw (ps:ps
+                (ps:chain ,gallery-container
+                          (add-event-listener "wheel" 
+                                              (lambda (e)
+                                                (ps:chain e (prevent-default))
+                                                (let ((scrolling-right (> (ps:@ ,gallery-container scroll-left) 
+                                                                          (- (ps:@ ,gallery-container scroll-left-max) 1000)))
+                                                      (scrolling-left (< (ps:@ ,gallery-container scroll-left) 1000)))
+                                                  (when (or scrolling-right scrolling-left)
+                                                    (let* ((images (ps:chain ,gallery-container children))
+                                                           (index (if scrolling-right 0 (1- (length images))))
+                                                           (image (ps:aref images index)))
+                                                      (ps:chain ,gallery-container 
+                                                                (scroll-by 
+                                                                 (ps:create
+                                                                  left (if scrolling-right
+                                                                           (- (ps:@ image width))
+                                                                           (ps:@ image width))
+                                                                  behavior "instant")))
+                                                      (if scrolling-right
+                                                          (ps:chain ,gallery-container (append image))
+                                                          (ps:chain ,gallery-container (prepend image))))))
+                                                (incf (ps:@ ,gallery-container scroll-left) (* 5 (ps:@ e delta-y)))))))))
+       (:div :id ,(ps:symbol-to-js-string gallery-container)
+        :class "gallery-container" 
+        (loop for image in ,images
+              do (:img :class "gallery-item" :src image))))))
+
 (defpage project "/projects/{name}" nil
+  (:style (:raw (articles-style-sheet)))
   (arrow :link "/projects" :content "Projects")
-  (let ((project (find-if 
+  (let ((project (find-if
                   (lambda (project)
                     (string=
                      (string-upcase (name project))
-                     (string-upcase name))) 
+                     (string-upcase name)))
                   (document-list-documents *projects-list*))))
     (if project
         (progn
           (:script (:raw (ps:ps* `(setf (ps:@ document title) ,name))))
-          (:raw (content project)))
+          (:raw (content project))
+          (repeating-gallery :images (images project)))
         (signal 'not-found))))
 
 (defun not-found ()
