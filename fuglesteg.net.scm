@@ -83,7 +83,7 @@
                  sbcl-cl-str))
   (synopsis "") (description "") (license license:expat) (home-page "")))
 
-(define fuglesteg-net
+(define fuglesteg.net
   (package
    (name "fuglesteg.net")
    (version "1.1")
