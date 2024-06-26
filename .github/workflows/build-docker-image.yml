@@ -1,14 +1,42 @@
 name: Build docker image
-on: [push]
+on:
+  push:
+    branches:
+      - main
 jobs:
   build:
     name: Build package
     runs-on: ubuntu-latest
+    container: 
+      image: metacall/guix
+      options: --privileged
     steps:
-      - name: Install Guix
-        uses: PromyLOPh/guix-install-action@v1.5
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Start guix daemon
+        run: |
+          source $GUIX_PROFILE/etc/profile
+          # Run guix daemon
+          /root/.config/guix/current/bin/guix-daemon --build-users-group=guixbuild &
+          GUIX_DAEMON=$!
       - name: Build image
-        run: guix pack -S /bin=bin -f docker --entry-point=bin/fuglesteg.net --root fuglesteg.net-docker.tar.gz -m manifest.scm
+        run: guix pack -S /bin=bin -f docker --no-grafts --entry-point=bin/fuglesteg.net --root=fuglesteg.net-docker.tar.gz -m manifest.scm
+      - name: Temporarily store pack
+        uses: actions/upload-artifact@v4
+        with:
+          name: fuglesteg.net-docker
+          path: fuglesteg.net-docker.tar.gz
+          retention-days: 1
+  upload:
+    name: Upload docker image
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Download temporary pack
+        uses: actions/download-artifact@v4
+        with:
+          name: fuglesteg.net-docker
+          path: .
       - name: Load image
         run: docker load -i fuglesteg.net-docker.tar.gz
       - name: Login to Docker Hub
