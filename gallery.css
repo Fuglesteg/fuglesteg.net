@@ -3,6 +3,7 @@
   transform: translateX(-50%);
   width: 100vw;
   mask: linear-gradient(90deg, transparent, white 20%, white 80%, transparent);
+  -webkit-mask: -webkit-linear-gradient(0deg, transparent, white 20%, white 80%, transparent);
   position: absolute;
   overflow-y: scroll;
   display: flex;

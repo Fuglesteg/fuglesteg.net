@@ -1,0 +1,9 @@
+.rounded {
+  border-radius: 50%;
+}
+
+.profile-picture {
+  float: right;
+  width: 15rem;
+  height: 15rem;
+}

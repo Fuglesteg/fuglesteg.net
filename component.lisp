@@ -6,7 +6,7 @@
 #+comp 
 (defcomponent counter (label &key initial)
   (:p ,label)
-  (:p (var value))
+  (:p (bind value))
   (:button :onclick increment "Increment")
   (:script (defun increment () (incf value))))
 
