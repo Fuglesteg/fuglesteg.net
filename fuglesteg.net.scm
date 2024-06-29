@@ -64,7 +64,7 @@
 (define sbcl-commondoc-markdown
   (package
    (name "commondoc-markdown")
-   (version "1.0")
+   (version "1.2")
    (source
     (origin
      (method git-fetch)
@@ -83,10 +83,13 @@
                  sbcl-cl-str))
   (synopsis "") (description "") (license license:expat) (home-page "")))
 
+(define fuglesteg.net-static-files
+  (local-file "public" "fuglesteg.net-static-files" #:recursive? #t))
+
 (define fuglesteg.net
   (package
    (name "fuglesteg.net")
-   (version "1.1")
+   (version "1.2")
    (source (local-file (dirname (current-filename)) #:recursive? #t))
    (build-system asdf-build-system/sbcl)
    (outputs '("out" "bin" "image"))
@@ -94,8 +97,13 @@
     (list 
      #:phases 
      #~(modify-phases %standard-phases
+                      (add-after 'unpack 'map-static-files
+                                  (lambda* (#:key inputs #:allow-other-keys)
+                                           (substitute* "fuglesteg.net.lisp"
+                                                        (("\\./public") (string-append (assoc-ref inputs "fuglesteg.net-static-files")
+                                                                                       "/")))))
                       (add-after 'create-asdf-configuration 'build-program
-                                 (lambda* (#:key outputs #:allow-other-keys)
+                                 (lambda* (#:key inputs outputs #:allow-other-keys)
                                           (define (with-build-environment directory procedure)
                                             (let ((build-dependencies '("/articles" "/projects" "/about-me.md"))
                                                   (runtime-dependencies '("/public")))
@@ -109,7 +117,7 @@
                                                           (delete-file-recursively (string-append directory dependency)))
                                                         build-dependencies)))
                                           (with-build-environment (string-append (assoc-ref outputs "bin") "/bin") 
-                                            (lambda (directory) 
+                                            (lambda (directory)
                                               (build-program (string-append directory "/fuglesteg.net")
                                                              outputs
                                                              #:compress? #t
@@ -117,17 +125,21 @@
                                           (with-build-environment (string-append (assoc-ref outputs "image") "/lib")
                                             (lambda (directory)
                                               (build-image (string-append directory "/fuglesteg.net")
-                                                           outputs))))))))
-   (inputs (list sbcl
-                 sbcl-serapeum
-                 sbcl-alexandria
-                 sbcl-cl-yaml
-                 sbcl-spinneret
-                 sbcl-parenscript
-                 sbcl-common-doc
-                 sbcl-commondoc-markdown
-                 sbcl-common-html
-                 sbcl-clack
-                 sbcl-lack
-                 sbcl-woo))
+                                                           outputs
+                                                           #:compress? #t))))))))
+   (inputs `(("sbcl" ,sbcl)
+             ("sbcl-serapeum" ,sbcl-serapeum)
+             ("sbcl-alexandria" ,sbcl-alexandria)
+             ("sbcl-cl-yaml" ,sbcl-cl-yaml)
+             ("sbcl-spinneret" ,sbcl-spinneret)
+             ("sbcl-parenscript" ,sbcl-parenscript)
+             ("sbcl-common-doc" ,sbcl-common-doc)
+             ("sbcl-commondoc-markdown" ,sbcl-commondoc-markdown)
+             ("sbcl-common-html" ,sbcl-common-html)
+             ("sbcl-clack" ,sbcl-clack)
+             ("sbcl-lack" ,sbcl-lack)
+             ("sbcl-woo" ,sbcl-woo)
+             ("fuglesteg.net-static-files" ,fuglesteg.net-static-files)))
    (synopsis "") (description "") (license license:expat) (home-page "")))
+
+fuglesteg.net
