@@ -20,6 +20,8 @@ jobs:
           /root/.config/guix/current/bin/guix-daemon --build-users-group=guixbuild &
           GUIX_DAEMON=$!
           sleep 3
+      - name: Pull latest
+        run: guix pull
       - name: Build image
         run: guix pack -S /bin=bin -f docker --no-grafts --entry-point=bin/fuglesteg.net --root=fuglesteg.net-docker.tar.gz -m manifest.scm
       - name: Temporarily store pack
