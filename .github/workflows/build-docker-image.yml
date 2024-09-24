@@ -8,20 +8,11 @@ jobs:
     name: Build package
     runs-on: ubuntu-latest
     container: 
-      image: metacall/guix
+      image: fuglesteg/guix
       options: --privileged
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Start guix daemon
-        run: |
-          source $GUIX_PROFILE/etc/profile
-          # Run guix daemon
-          /root/.config/guix/current/bin/guix-daemon --build-users-group=guixbuild &
-          GUIX_DAEMON=$!
-          sleep 3
-      - name: Pull latest
-        run: guix pull
       - name: Build image
         run: guix pack -S /bin=bin -f docker --no-grafts --entry-point=bin/fuglesteg.net --root=fuglesteg.net-docker.tar.gz -m manifest.scm
       - name: Temporarily store pack
