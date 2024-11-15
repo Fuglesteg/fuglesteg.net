@@ -1,2 +1,2 @@
-(load "fuglesteg.net.scm")
+(load "guix.scm")
 (packages->manifest (list `(,fuglesteg.net "bin")))

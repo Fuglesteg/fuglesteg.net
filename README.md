@@ -2,7 +2,7 @@
 
 A webpage written in Common Lisp and Markdown documents.
 
-It uses common-doc to tranlate Markdown documents to HTML and cl-yaml to read
+It uses common-doc to translate Markdown documents to HTML and cl-yaml to read
 YAML frontmatter from the documents. (See: `document.lisp`)
 
 The web server is built on top of Clack, but it only serves static content so
