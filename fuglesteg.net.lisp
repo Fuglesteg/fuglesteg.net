@@ -57,15 +57,16 @@
 (deftag header (body attrs)
   `(progn
      (:header :class "header"
-       (:a :href "/"
-        (:img :class "logo" :alt "Fuglesteg logo" :src "/public/logo.svg"))
-       (:div
+       (:div :class "header-content"
         (:a :href "/"
-         (:h1 :class "header-title" "Fuglesteg"))
-        (:nav :class "header-nav"
-         (:a :class "button" :href "/about" "About me")
-         (:a :class "button" :href "/articles" "Articles")
-         (:a :class "button" :href "/projects" "Projects"))))))
+         (:img :class "logo" :alt "Fuglesteg logo" :src "/public/logo.svg"))
+        (:div
+         (:a :href "/"
+          (:h1 :class "header-title" "Fuglesteg"))
+         (:nav :class "header-nav"
+          (:a :class "button" :href "/about" "About me")
+          (:a :class "button" :href "/articles" "Articles")
+          (:a :class "button" :href "/projects" "Projects")))))))
 
 (defmacro style-sheet ()
   (uiop:read-file-string #P"./style.css"))
@@ -75,6 +76,7 @@
      (:doctype)
      (:html
       (:head
+       (:meta :name "viewport" :content "width=device-width, initial-scale=1.0")
        (:link :rel "preconnect" :href "https://fonts.googleapis.com")
        (:link :rel "preconnect" :href "https://fonts.gstatic.com")
        (:raw "<link rel=\"preload\" href=\"https://fonts.googleapis.com/css2?family=Marcellus&display=swap\" as=\"style\">")
@@ -179,12 +181,13 @@
       :src src)))
 
 (deftag project-thumbnail (body attrs &key project)
-  `(:a :href (format nil "/projects/~a" (name ,project))
-    (:div :class "thumbnail"
+  `(:a
+    :href (format nil "/projects/~a" (name ,project))
+    :class "thumbnail"
      (:h2 (name ,project))
      (:p (synopsis ,project))
      (:div (loop for technology in (technologies ,project)
-                 collect (devicon :name technology))))))
+                 collect (devicon :name technology)))))
 
 ;; Projects
 

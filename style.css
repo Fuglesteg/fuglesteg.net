@@ -18,12 +18,17 @@ html {
   width: 10rem;
 }
 
-.header {
+.header-content {
   display: flex;
   align-items: center;
   justify-content: center;
+  margin: 0 auto;
   gap: 2rem;
   flex-wrap: wrap;
+}
+
+.header {
+  width: 100%;
 }
 
 header {
@@ -44,6 +49,20 @@ header {
   width: 20rem;
   align-items: left;
   justify-content: left;
+  /*font-size: clamp(1rem, 2vw, 1.25rem); */
+}
+
+@media (max-width: 640px) {
+  .header-content {
+    flex-direction: column;
+    gap: 0rem;
+  }
+  .header-title {
+    text-align: center;
+  }
+  .header-nav {
+    width: auto;
+  }
 }
 
 code {

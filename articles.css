@@ -1,5 +1,8 @@
 .thumbnail {
-  width: 27rem;
+  width: 100%;
+  max-width: 400px;
+  flex: 0 1 400px;
+  min-width: 0;
   height: 10rem;
   border: solid white 0.1rem;
   border-radius: 0.8rem;
