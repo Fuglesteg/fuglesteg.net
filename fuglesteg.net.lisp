@@ -14,7 +14,7 @@
 (defvar *app*
   (lack:builder
    (:static :path "/public/"
-    :root #P"./public")
+    :root #P"./public/")
    (lambda (env) (handle-route env))))
 
 (defvar *handler* nil)
