@@ -125,14 +125,15 @@
   (uiop:read-file-string #P"./articles.css"))
 
 (deftag article-thumbnail (body attrs &key article)
-  `(:a :href (concatenate 'string "/articles/" (title ,article))
-    (:div :class "thumbnail"
+  `(:a 
+    :href (concatenate 'string "/articles/" (title ,article))
+    :class "thumbnail"
      (:p (created-date ,article))
      (:h3 (title ,article))
      (:p (with-slots (synopsis) article
            (concatenate 'string 
                         (subseq synopsis 0 (min (length synopsis) 100))
-                        "..."))))))
+                        "...")))))
 
 (deftag articles-list (body attrs)
   `(progn (:style (:raw ,(articles-style-sheet)))
