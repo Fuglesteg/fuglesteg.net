@@ -6,14 +6,14 @@
   :serial t
   :depends-on (#:cl-yaml
                #:spinneret
-               #:spinneret/ps 
-               #:serapeum 
+               #:spinneret/ps
+               #:serapeum
                #:woo
-               #:alexandria 
-               #:common-doc 
-               #:commondoc-markdown 
+               #:alexandria
+               #:common-doc
+               #:commondoc-markdown
                #:common-html
-               #:clack 
+               #:clack
                #:lack)
   :components ((:file "document")
                (:file "routing")
