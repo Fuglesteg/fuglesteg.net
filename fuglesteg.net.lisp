@@ -1,3 +1,7 @@
+; TODO: Better support for mobile
+; TODO: Separate router lib
+; TODO: Static file generation
+
 (defpackage fuglesteg.net
   (:use :cl 
         :spinneret 
@@ -22,7 +26,7 @@
 (defun start-debug ()
   (when *handler*
     (clack:stop *handler*))
-  (setf *handler* (clack:clackup *app*)))
+  (setf *handler* (clack:clackup *app* :port 8080)))
 
 (defun start ()
   (setf *handler* (clack:clackup *app* 
@@ -108,9 +112,7 @@
 
 (defpage about "/about" "About me"
   (:style (:raw (image-style-sheet)))
-  ;(:img :class "rounded profile-picture" :src "/public/profile-picture-zoomed.jpg")
   (:img :class "rounded profile-picture" :src "/public/profile-pic-2.jpg")
-  ;(:img :class "rounded profile-picture" :src "/public/profile-picture.jpeg")
   (:raw (content *about-document*)))
 
 ;;; Articles
@@ -173,7 +175,7 @@
      (:img 
       :title ,name
       :alt (format nil "~a icon" ,name)
-      :style "width: 10%;"
+      :style "width: 3rem;"
       :src src)))
 
 (deftag project-thumbnail (body attrs &key project)
@@ -252,15 +254,22 @@
                      (string-upcase (name project))
                      (string-upcase name)))
                   (document-list-documents *projects-list*))))
-    (if project
-        (progn
-          (:script (:raw (ps:ps* `(setf (ps:@ document title) ,name))))
-          (:div :style "width: 50%;"
-           (loop for technology in (technologies project)
-                do (devicon :name technology)))
-          (:raw (content project))
-          (repeating-gallery :images (images project)))
-        (signal 'http-not-found))))
+    (unless project
+        (signal 'http-not-found))
+    (progn
+      (:script (:raw (ps:ps* `(setf (ps:@ document title) ,name))))
+      (:div :style "display: flex; flex-direction: row;"
+       (:div :style "width: 50%;"
+        (loop for technology in (technologies project)
+              do (devicon :name technology)))
+       (when (source-link project)
+         (:a :href (source-link project)
+          :style "gap: 0.5rem; display: flex; margin-left: auto; width: fit-content;"
+          :class "button"
+          (devicon :name "git")
+          (:p "Source code"))))
+      (:raw (content project))
+      (repeating-gallery :images (images project)))))
 
 (defpage index "/" "Fuglesteg.net"
   (:p "Hello! Welcome to my corner of the internet." 

@@ -1,6 +1,6 @@
 ---
 name: Github data exploration
-source-link: https://github.com/fuglesteg/github-language-popularity
+source-link: https://github.com/Fuglesteg/Data-exploration-of-github-language-popularity
 link: https://vis3000.fuglesteg.net
 technologies:
     - r

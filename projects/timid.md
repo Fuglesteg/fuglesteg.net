@@ -30,7 +30,7 @@ On the server I also host minecraft servers using the excellent
 [itzg/minecraft-server](https://hub.docker.com/r/itzg/minecraft-server) in
 combination with the just as excellent [Infrared](https://infrared.dev/). Using
 Infrared I can configure it to automatically start and stop Docker containers
-when connections are made. This is excellent as it means that I can host many
+when connections are made. This is great as it means that I can host many
 servers at the same time and only the ones that are actually being used will use
 any resources.
 

@@ -1,6 +1,6 @@
 ---
 name: Fuglesteg.net
-source-link: https://github.com/Fuglesteg/fuglesteg-net
+source-link: https://github.com/Fuglesteg/fuglesteg.net
 technologies:
     - lisp
     - guix
