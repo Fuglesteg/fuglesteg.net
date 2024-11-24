@@ -6,7 +6,7 @@ technologies:
     - sass
 ---
 
-# IOT Dashboard
+# Internet of things Dashboard
 
 > An admin dashboard developed for NanoPowers IOT devices
 
@@ -15,7 +15,7 @@ During university me and a team of students collaborated with a local business,
 display information from their line of IOT devices. NanoPower was working on
 implementing an iPhone and Android app, and a REST based API to be used with
 it. We were tasked with creating a website that used the same REST API to
-provide better visualisations, analysis and reporting that what the mobile app
+provide better visualisations, analysis and reporting than what the mobile app
 could do.
 
 The dashboard was fully customisable by the user. It's main components are:
@@ -28,11 +28,12 @@ The dashboard was fully customisable by the user. It's main components are:
       min and max for a given *time frame*
     - **Chart**: a chart is a line chart visualisation of historical data for a
       *time frame*. The chart is interactive, so the user can see specific
-      measurements from each day, or drill down into each individual
-      measurement taken on a given day.
+      measurements from each day, or drill down into
+      measurements taken on a single day.
 
-The user could customise the layouts, modules and visualisations however they
-wanted using drag and drop and by picking devices and sensors for visualisation.
+The user could customise the layouts, modules and visualisations in whatever way
+they wanted. Using drag and drop the user could place modules and visualisations 
+wherever they want.
 You would choose a time frame in which all visualisations would get their data,
 meaning that all charts would visualise the historical data from that time
 frame and the live measurements would use that data to calculate min and max

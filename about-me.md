@@ -14,7 +14,7 @@ great I am incredibly grateful for the practical experience I gained from
 working on various systems, of varying degrees of complexity.
     
 I started programming when I was about 10 or 12. I can't quite remember when
-the first time I programmed was, but I remember how. Computercraft was a
+the first time I programmed was, but I remember how: Computercraft was a
 minecraft mod that allowed you to program computers inside the game. You could
 write programs that interacted with the minecraft world in different ways, like
 managing inventories or opening/closing doors. It was a great way for a kid to

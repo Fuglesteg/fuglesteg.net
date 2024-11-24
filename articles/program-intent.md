@@ -337,54 +337,36 @@ programming languages. I will however highlight some uses of Lisp macros that I
 find fascinating, some are less useful than others, but demonstrate the power
 of the meta programming facilities provided by Lisp.
 
-#### Clerk
+- [Clerk](https://github.com/tsikov/clerk) uses a simple DSL for writing CRON job like scheduled tasks.
 
-[Clerk](https://github.com/tsikov/clerk) uses a simple DSL for writing CRON job like scheduled tasks.
-
-#### Vacietis
-
-[Vacietis](https://github.com/vsedach/Vacietis) is a C to Common Lisp compiler. Seems a little weird at first, but can
+- [Vacietis](https://github.com/vsedach/Vacietis) is a C to Common Lisp compiler. Seems a little weird at first, but can
 be used to interop and extend C libraries using Common Lisp.
 
-#### Coalton
-
-[Coalton](https://github.com/coalton-lang/coalton/) is a statically typed, purely functional language that is embedded
+- [Coalton](https://github.com/coalton-lang/coalton/) is a statically typed, purely functional language that is embedded
 within your Common Lisp program. It is inspired by Haskell, but still uses the
 s-expression based syntax of Lisp.
 
-#### Alexa
+- [Alexa](https://github.com/quil-lang/alexa) allows you to write lexical analyzers using a DSL.
 
-[Alexa](https://github.com/quil-lang/alexa) allows you to write lexical analyzers using a DSL.
-
-#### Web dev
-
-##### Parenscript
-
-[Parenscript](https://parenscript.common-lisp.dev/) is a Common Lisp to JavaScript transpiler, allowing you to use many
+- [Parenscript](https://parenscript.common-lisp.dev/) is a Common Lisp to JavaScript transpiler, allowing you to use many
 facilities of Lisp while developing an interactive web app.
 
-##### Spinneret
-
-[Spinneret](https://github.com/ruricolist/spinneret) is a library which allows you to define HTML using an s-expression
+- [Spinneret](https://github.com/ruricolist/spinneret) is a library which allows you to define HTML using an s-expression
 syntax. You define the HTML as a tree of keywords representing tags and
 attributes, then you can compile this tree, into an HTML string.
 The library also interoperates with Parenscript allowing the tree to be
 transpiled into a parenscript expression that generates the HTML using
 `DocumentFragment`.
 
-##### LASS
+- [LASS](https://github.com/Shinmera/LASS) is an s-expression based DSL for writing CSS, inspired by SASS.
 
-[LASS](https://github.com/Shinmera/LASS) is an s-expression based DSL for writing CSS, inspired by SASS.
-
-##### Sxql
-
-[Sxql](https://github.com/fukamachi/sxql) is an s-expression based DSL for writing SQL queries.
+- [Sxql](https://github.com/fukamachi/sxql) is an s-expression based DSL for writing SQL queries.
 
 ## Conclusion
 
-While it may not seem like it, the point of this article was not to preach Lisp
+While it may not seem like it, the point of this article was not to preach Lisp.
 The point is to open the door for giving the power of abstraction into the
-hands of the programmer. Extensible languages like Lisp offers an alternative
+hands of the programmer. Extensible languages like Lisp offer an alternative
 to the modern, simpler, rigid languages. To highlight the advantages of using
 an extensible programming language I have attempted to show examples in the
 exploration of new abstractions, the freedom of using a language that can adapt

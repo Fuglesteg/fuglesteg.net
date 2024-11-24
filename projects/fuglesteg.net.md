@@ -10,7 +10,7 @@ technologies:
 
 # Fuglesteg.net
 
-> The website which you are looking at
+> The website you are currently looking at
 
 This website is written in Common Lisp using mainly
 [Clack](https://github.com/fukamachi/clack),

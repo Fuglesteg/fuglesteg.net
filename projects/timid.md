@@ -20,11 +20,11 @@ did however notice that the server seemed to use a lot of resources even when no
 one was connected to it (both CPU and memory). Now, my server doesn't have that
 many resources so I was a little hesitant of hosting the valheim server if it
 meant that it would slow down all my other services and increase the power draw.
-I considered just manually turning on or off the server myself, but that defeats
+I considered just turning the server on and off manually myself, but that defeats
 the point of having a dedicated server. Also my friends would not be able to
-play without me unless I specifically left the server running.
+play without me, unless I specifically left the server running.
 I also considered building a small website or similar that would allow my
-friends to manually turn the server on, but this seemed kind of hacky.
+friends to manually turn the server on and off, but this seemed kind of hacky.
 
 On the server I also host minecraft servers using the excellent
 [itzg/minecraft-server](https://hub.docker.com/r/itzg/minecraft-server) in
