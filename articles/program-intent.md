@@ -9,14 +9,13 @@ tags:
 > On the longevity and practicality of abstractions
 
 Programming languages are special in that they attempt to formalize logical
-processes. Where traditional mathematics attempt to apply logic to results,
-programming languages attempt to formalize a way to express logical processes.
-This article is about an area of programming I think is historically and
-currently overlooked. We will explore language design, abstractions and
-current programming trends. I will showcase the power of using an extensible
-programming language, to write clear and maintainable code, and how it can
-adapt to programming paradigms. This article is about the art of writing
-programs with *intent*.
+processes, they bridge the gap between the logic of a machine and human
+thinking. This article is about an area of programming I think is historically
+and currently overlooked: abstraction through extensible languages. We will
+explore language design, abstractions and current programming trends. I will
+showcase the power of using an extensible programming language, to write clear
+and maintainable code, and how it can adapt to programming paradigms. This
+article is about the art of writing programs with *intent*.
 
 In recent times there seems to be a big push within language design towards
 simple languages which makes your programs processes clear. This is often done
