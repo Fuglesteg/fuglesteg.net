@@ -10,9 +10,9 @@ tags:
 
 The two week minecraft phase is a phenomena that plagues and blesses the lives of gamers every year or even multiple times a year, but how often do we find ourselves keeping those old servers available for after the phase is over. How often does your friend group get caught up in how to host the server, server costs or god forbid minecraft realms.
 
-In this article we will explore how to host servers that can be kept available for years all on a single computer.
+In this article we will explore how to host servers that can be kept available for years, all on a single computer.
 
-Vanilla Minecraft servers have gotten only more and more greedy with their
+Vanilla Minecraft servers have only gotten more and more greedy with their
 resource usage in recent years. Alternatives like paper exist, that attempt to
 minimize resource usage while still keeping a mostly vanilla experience.
 However many types of servers, especially modded, still require a lot of ram
@@ -25,7 +25,7 @@ The solution that I'm proposing will not suit everyone, but to those who need mu
 # Infrared
 Infrared is a reverse proxy for Minecraft that can automatically stop and start
 docker containers. It uses the minecraft protocol to give feedback to users
-when they attempt to connect. For example Infrared can be configured to give a
+when they attempt to connect. For example, Infrared can be configured to give a
 message to the user when they attempt to connect to a server that is not
 running. The message can be displayed as a MOTD (Message Of The Day) in the
 servers list, and show a different or the same message when the user attempts
@@ -33,7 +33,7 @@ to connect to the server.
 
 ![Minecraft server in server list](/public/articles/Minecraft-server-list.png)
 
-Then when the user connects Infrared will attempt to start the server and the user can get a message.
+Then when the user connects, Infrared will attempt to start the server and the user can get a message.
 
 ![Minecraft server status message when offline](/public/articles/Minecraft-server-disconnect.png)
 
@@ -42,14 +42,14 @@ Then after the server is started infrared will proxy the connection to the minec
 ![Minecraft server in server list (online)](/public/articles/Minecraft-server-list-online.png)
 
 When no player has been connected to the server for a customizable amount of
-time, the Infrared will automatically shit down the server so you can save the
+time, the Infrared will automatically shut down the server so you can save the
 resources.
 
 **NOTE: The latest version of Infrared, V2.0.0, does not currently support the docker control features showcased in this article, we will be using V1.3.4**
 
 # Configuration
 
-So you're excited about this and want to set it up for yourself. The first step is to setup Infrared and a minecraft server as docker containers. You can use the docker cli directly for this `docker run` etc. But I prefer the more declarative docker compose way of doing it. So you will need a linux machine running docker and docker compose. Next step is to create a `compose.yml` file that will serve as the configuration of our minecraft servers and infrared.
+So you're excited about this and want to set it up for yourself. The first step is to setup Infrared and a minecraft server as docker containers. You can use the docker CLI directly for this `docker run` etc. But I prefer the more declarative docker compose way of doing it. So you will need a linux machine running docker and docker compose. Next step is to create a `compose.yml` file that will serve as the configuration of our minecraft servers and infrared.
 
 ```yaml
 name: mc
@@ -119,7 +119,7 @@ Here's what the different fields mean:
 
 - **domainName**: The domain name that players will connect to in order to reach the minecraft server.
 - **proxyTo**: The domain that the proxy will send connections to, in this case the name `latest` is intercepted by the Docker DNS service and redirected to the container of that name. This only happens because the container are running on the same docker network, this happens implicitly only because they are defined in the same compose file.
-- **disconnectMessage**: The message the player will get if they attenpt to connect to a server that is offline. There are some different templating values that you have access to here through the `{{...}}` syntax. Here we just use the domain, which will be the value from the `domainName` field.
+- **disconnectMessage**: The message the player will get if they attempt to connect to a server that is offline. There are some different templating values that you have access to here through the `{{...}}` syntax. Here we just use the domain, which will be the value from the `domainName` field.
 - **docker**
     - **containerName**: The name of the container as seen in `docker ps`. Note that because we set the name in `compose.yml` we have full control of that name, if we removed the name field on the container it would by default be called `mc-latest-1`
     - **timeout**: The amount of time in milliseconds that the container should be unused, no connections, before infrared will shut it down.
