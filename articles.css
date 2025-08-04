@@ -1,7 +1,9 @@
 .thumbnail {
   width: 100%;
-  max-width: 400px;
-  flex: 0 1 400px;
+  flex: 1 1 400px;
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
   min-width: 0;
   height: 10rem;
   border: solid white 0.1rem;
@@ -9,6 +11,10 @@
   padding: 1rem;
   text-overflow: ellipsis;
   overflow: hidden;
+}
+
+.thumbnail * {
+  margin: 0px;
 }
 
 .grid-container {

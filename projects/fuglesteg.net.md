@@ -6,6 +6,7 @@ technologies:
     - guix
     - docker
     - nginx
+date: 20.05.2024
 ---
 
 # Fuglesteg.net
@@ -29,7 +30,7 @@ into a library soon. It allows me to define routes like this:
 
 ```lisp
 (defroute article "/articles/{article-title}"
-          (content (find article-title *articles* :key #'title :test #'string=)))
+  (content (find article-title *articles* :key #'title :test #'string=)))
 ```
 
 The program is then packaged with a Guix package definition, a GitHub action builds the package as a docker image which is then deployed to Docker Hub. The image is then deployed to my self hosted server.

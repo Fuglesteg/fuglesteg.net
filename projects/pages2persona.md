@@ -8,6 +8,7 @@ technologies:
     - azure
     - cosmosdb
     - azuredevops
+date: 10.07.2023
 ---
 
 # Pages2Persona

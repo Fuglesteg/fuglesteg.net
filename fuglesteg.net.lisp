@@ -128,12 +128,10 @@
   `(:a 
     :href (concatenate 'string "/articles/" (title ,article))
     :class "thumbnail"
+    :style "justify-content: start; gap: 1rem;"
      (:p (created-date ,article))
      (:h3 (title ,article))
-     (:p (with-slots (synopsis) article
-           (concatenate 'string 
-                        (subseq synopsis 0 (min (length synopsis) 100))
-                        "...")))))
+     (:p (synopsis article))))
 
 (deftag articles-list (body attrs)
   `(progn (:style (:raw ,(articles-style-sheet)))
@@ -154,6 +152,7 @@
 
 (defpage article-page "/articles/{title}" nil
   (arrow :link "/articles" :content "Articles")
+  (:style (:raw (articles-style-sheet)))
   (enable-highlights)
   (let ((article (find-if 
                   (lambda (article)
@@ -168,8 +167,8 @@
           (:raw (content article)))
         (signal 'http-not-found))))
 
-(defvar *devicon-overrides*
-  '("lisp" "guix" "github"))
+(defparameter *devicon-overrides*
+  '("lisp" "guix" "github" "ollama"))
 
 (deftag devicon (body attrs &key name)
   `(let ((src (if (member ,name *devicon-overrides* :test #'string=)

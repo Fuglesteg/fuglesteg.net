@@ -59,6 +59,9 @@
 
 (defmethod populate-data ((document document) (common-doc common-doc:content-node)))
 
+(defmethod document-sort-value ((document document))
+  0)
+
 (defclass thumbnail ()
   ((synopsis
     :accessor synopsis
@@ -76,6 +79,23 @@
     :initform "Not specified"
     :type string)))
 
+(defun parse-date (date)
+  "Parse a date in format dd.MM.YYYY into a number for sorting"
+  (destructuring-bind (day month year) (mapcar #'parse-integer
+                                               (uiop:split-string date :separator '(#\.)))
+    (+ (* year 10000)
+       (* month 100)
+       day)))
+
+(defun date< (&rest dates)
+  (apply #'< (mapcar #'parse-date dates)))
+
+(defun date> (&rest dates)
+  (apply #'> (mapcar #'parse-date dates)))
+
+(defmethod document-sort-value ((article article))
+  (parse-date (created-date article)))
+
 (defmethod populate-data ((article article) (common-doc common-doc:content-node))
   (with-slots (title first-paragraph created-date) article
     (setf title (find-title common-doc)
@@ -91,14 +111,17 @@
    (technologies
     :accessor technologies)
    (images
-    :accessor images)))
+    :accessor images)
+   (date
+    :accessor project-date)))
 
 (defmethod populate-data ((project project) (common-doc common-doc:content-node))
-  (with-slots (name link source-link technologies images) project
+  (with-slots (name link source-link technologies images date) project
     (setf name (common-doc:get-meta common-doc "name")
           link (common-doc:get-meta common-doc "link")
           source-link (common-doc:get-meta common-doc "source-link")
           technologies (common-doc:get-meta common-doc "technologies")
+          date (or (common-doc:get-meta common-doc "date") "0.0.0")
           images (find-images project))))
 
 (defmethod find-images ((project project))
@@ -107,6 +130,9 @@
     (mapcar (lambda (path)
               (format nil "~a/~a.~a" image-directory-absolute-uri (pathname-name path) (pathname-type path)))
             (uiop/filesystem:directory-files image-directory))))
+
+(defmethod document-sort-value ((project project))
+  (parse-date (project-date project)))
 
 (defclass document-list ()
   ((directory
@@ -123,8 +149,11 @@
 (defmethod populate-document-list ((document-list document-list))
   (with-slots (directory documents type) document-list
     (let ((files (uiop/filesystem:directory-files directory "*.md")))
-      (setf documents (loop for file in files
-                            collect (make-instance type :file-path file))))))
+      (setf documents (sort (loop for file in files
+                                  collect (make-instance type :file-path file))
+                            (lambda (document1 document2)
+                              (> (document-sort-value document1)
+                                 (document-sort-value document2))))))))
 
 (defmethod initialize-instance :after ((document-list document-list) &key)
   (populate-document-list document-list))

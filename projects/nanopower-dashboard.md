@@ -4,6 +4,7 @@ technologies:
     - react
     - typescript
     - sass
+date: 10.08.2022
 ---
 
 # Internet of things Dashboard

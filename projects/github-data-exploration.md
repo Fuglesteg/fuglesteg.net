@@ -5,6 +5,7 @@ link: https://vis3000.fuglesteg.net
 technologies:
     - r
     - github
+date: 10.06.2022
 ---
 
 # Language popularity on GitHub

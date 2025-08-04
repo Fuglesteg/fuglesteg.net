@@ -37,11 +37,11 @@
                                          "common-doc-test.asd"
                                          "common-doc-tex.asd")))))))
    (inputs (list sbcl-trivial-types
-           sbcl-local-time
-           sbcl-quri
-           sbcl-anaphora
-           sbcl-alexandria
-           sbcl-closer-mop))
+                 sbcl-local-time
+                 sbcl-quri
+                 sbcl-anaphora
+                 sbcl-alexandria
+                 sbcl-closer-mop))
   (synopsis "") (description "") (license license:expat) (home-page "")))
 
 (define sbcl-common-html

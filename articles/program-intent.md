@@ -6,6 +6,7 @@ tags:
 ---
 
 # Program intent
+
 > On the longevity and practicality of abstractions
 
 Programming languages are special in that they attempt to formalize logical
@@ -258,8 +259,8 @@ a collection, using LOOP we could write it as:
 
 ```lisp
 (loop for user in users
-    when (< 20 (age user))
-    collect (name user))
+      when (< 20 (age user))
+      collect (name user))
 ```
 
 This code reads very similarly to the SQL statement we looked at earlier. If we
@@ -271,7 +272,7 @@ LOOP macro.
   `(loop for item in ,from
          when ,where
          collect (list ,@(loop for property in properties
-                        collect `(,property item)))))
+                               collect `(,property item)))))
 ```
 
 Then we can use it like:
@@ -313,7 +314,7 @@ performance:
 
 ```lisp
 (defmacro repeat (number-of-times &body body)
-    `(loop repeat ,number-of-times do ,@body))
+  `(loop repeat ,number-of-times do ,@body))
 ```
 
 Then we can use it like:

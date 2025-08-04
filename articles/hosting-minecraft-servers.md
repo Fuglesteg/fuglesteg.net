@@ -6,7 +6,7 @@ tags:
 ---
 
 # Sane Minecraft server hosting
-> How to host infinite minecraft servers on limited hardware
+> Hosting infinite minecraft servers on limited hardware
 
 The two week minecraft phase is a phenomena that plagues and blesses the lives of gamers every year or even multiple times a year, but how often do we find ourselves keeping those old servers available for after the phase is over. How often does your friend group get caught up in how to host the server, server costs or god forbid minecraft realms.
 
