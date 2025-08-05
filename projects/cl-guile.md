@@ -4,6 +4,7 @@ technologies:
   - lisp
   - guix
 date: 05.10.2025
+source-link: https://github.com/Fuglesteg/cl-guile
 ---
 
 # Language interoperability library
